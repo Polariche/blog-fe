@@ -3,20 +3,35 @@ import React, {useState, forwardRef, useRef, useEffect, useImperativeHandle} fro
 
 
 const Comment = forwardRef((props, ref) => {
+  const [content, setContent] = useState("");
   const [focused, setFocused] = useState(false);
-  const [maxLength, setMaxLength] = useState(-1);
-
+  
   const myRef = useRef(null);
 
+  if (props.children && !content)
+    setContent(props.children)
+
   useImperativeHandle(ref, () => ({
-    handleFocus(val) {
-      setFocused(val);
+    defocus() {
+      if (myRef.current) {
+        if (myRef.current.innerText.length > 0)
+          setContent(myRef.current.innerText)
+        else
+          setContent(null)
+      }
+      setFocused(false);
+    },
+    focus() {
+      setFocused(true);
     }
   }))
 
-  useEffect(() => {if(focused) {myRef.current.focus()}}, [focused])
+  useEffect(() => {if(focused) {
+                      myRef.current.focus()
+                    }
+                  }, [focused])
 
-  if (props.children != null || focused)
+  if (content || focused)
   {
     const outerStyle = {
       overflow: 'visible', 
@@ -34,8 +49,8 @@ const Comment = forwardRef((props, ref) => {
 
     return (
       <div style={outerStyle}>
-        <div style={innerStyle} contentEditable={focused} ref={myRef}  onClick={() => {setFocused(true)}}>
-          {props.children}
+        <div style={innerStyle} contentEditable={focused} ref={myRef} onClick={() => {setFocused(true)}}>
+          {content}
         </div>
       </div>
     );
@@ -47,6 +62,7 @@ const Comment = forwardRef((props, ref) => {
 });
 
 export default function commentRenderer(comments={}) {
+    var currentRef = null;
 
     return ({ rows, stylesheet, useInlineStyles }) => {
         // edit rows to contain comments
@@ -58,8 +74,15 @@ export default function commentRenderer(comments={}) {
                   {content}
               </Comment>
             )
-            node.properties['onFocus'] = () => {ref.current.handleFocus(true);}
-            //node.properties['onBlur'] = () => {ref.current.handleFocus(false);}
+
+            node.properties['onFocus'] = () => {
+              if (currentRef)
+                currentRef.current.defocus()
+
+              currentRef = ref;
+              currentRef.current.focus();
+            }
+
             node.properties['tabIndex'] = -1
 
             var element = createElement({
