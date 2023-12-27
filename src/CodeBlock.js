@@ -29,7 +29,7 @@ class CodeBlock extends Component {
     render () {
       return (
         <SyntaxHighlighter 
-        language="javascript" 
+        language="cpp" 
         style={docco} 
         showLineNumbers={true} 
         wrapLines={true} 
