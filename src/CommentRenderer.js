@@ -3,71 +3,51 @@ import React, {useState, forwardRef, useRef, useEffect, useImperativeHandle} fro
 import Markdown from 'react-markdown'
 
 const Comment = forwardRef((props, ref) => {
-  const [content, setContent] = useState("");
-  const [focused, setFocused] = useState(false);
+  const [state, setState] = useState({content: props.children, focused: false});
   
   const myRef = useRef(null);
-
-  if (props.children && !content)
-    setContent(props.children)
+  
+  const outerStyle = {
+    overflow: 'visible', 
+    width: 0, 
+    height: 0, 
+    position: 'relative', 
+    left: 500,
+    userSelect: 'none',
+  }
 
   useImperativeHandle(ref, () => ({
     defocus() {
-      if (myRef.current) {
-        if (myRef.current.innerText.length > 0)
-          setContent(myRef.current.innerText)
-        else
-          setContent(null)
-      }
-      setFocused(false);
+      setState({...state, focused: false});
     },
     focus() {
-      setFocused(true);
+      setState({...state, focused: true});
     }
   }))
 
-  useEffect(() => {if(focused) {
+  useEffect(() => {if(state.focused) {
                       myRef.current.focus()
                     }
-                  }, [focused])
+                  }, [state])
 
-  if (content || focused)
-  {
-    const outerStyle = {
-      overflow: 'visible', 
-      width: 0, 
-      height: 0, 
-      position: 'relative', 
-      left: 500,
-      userSelect: 'none',
-    }
-
-    const innerStyle = {
-      backgroundColor: 'rgb(0,0,0)',
-      color: 'green',
-    }
-
-    if (!focused) {
-      return (
-        <div style={outerStyle}>
-          <div style={innerStyle} ref={myRef} onClick={() => {setFocused(true)}}>
-            <Markdown components={{p: 'span'}}>
-              {content}
-            </Markdown>
-          </div>
-        </div>
-      );
-      
-    } else {
-      return (
-        <div style={outerStyle}>
-          <div style={innerStyle} contentEditable={true} ref={myRef}>
-            {content}
-          </div>
-        </div>
-      );
-    }
+  if (state.focused || state.content){
+    const finalContent = state.focused ? state.content : (
+      <Markdown components={{p: 'span'}}>
+        {state.content}
+      </Markdown>
+    )
     
+    return (
+      <div style={outerStyle}>
+        <div contentEditable={state.focused} 
+              ref={myRef} 
+              onClick={() => {setState({content: state.content, focused: true})}}
+              onBlur={e => {setState({content: e.currentTarget.textContent, focused: false}); myRef.current.innerText = ''}}
+              suppressContentEditableWarning>
+          {finalContent}
+        </div>
+      </div>
+    );
 
   } else {
     return (<></>)
@@ -90,9 +70,6 @@ export default function commentRenderer(comments={}) {
             )
 
             node.properties['onFocus'] = () => {
-              if (currentRef)
-                currentRef.current.defocus()
-
               currentRef = ref;
               currentRef.current.focus();
             }
