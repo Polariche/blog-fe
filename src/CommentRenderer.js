@@ -50,8 +50,8 @@ const Comment = forwardRef((props, ref) => {
     if (!focused) {
       return (
         <div style={outerStyle}>
-          <div style={innerStyle} ref={myRef}>
-            <Markdown ref={myRef} onClick={() => {setFocused(true)}} components={{p: 'span'}}>
+          <div style={innerStyle} ref={myRef} onClick={() => {setFocused(true)}}>
+            <Markdown components={{p: 'span'}}>
               {content}
             </Markdown>
           </div>
