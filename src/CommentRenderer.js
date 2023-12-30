@@ -1,6 +1,6 @@
 import { createElement } from 'react-syntax-highlighter';
 import React, {useState, forwardRef, useRef, useEffect, useImperativeHandle} from 'react';
-
+import Markdown from 'react-markdown'
 
 const Comment = forwardRef((props, ref) => {
   const [content, setContent] = useState("");
@@ -39,21 +39,35 @@ const Comment = forwardRef((props, ref) => {
       height: 0, 
       position: 'relative', 
       left: 500,
-      userSelect: 'none'
+      userSelect: 'none',
     }
 
     const innerStyle = {
       backgroundColor: 'rgb(0,0,0)',
-      color: 'green'
+      color: 'green',
     }
 
-    return (
-      <div style={outerStyle}>
-        <div style={innerStyle} contentEditable={focused} ref={myRef} onClick={() => {setFocused(true)}}>
-          {content}
+    if (!focused) {
+      return (
+        <div style={outerStyle}>
+          <div style={innerStyle} ref={myRef}>
+            <Markdown ref={myRef} onClick={() => {setFocused(true)}} components={{p: 'span'}}>
+              {content}
+            </Markdown>
+          </div>
         </div>
-      </div>
-    );
+      );
+      
+    } else {
+      return (
+        <div style={outerStyle}>
+          <div style={innerStyle} contentEditable={true} ref={myRef}>
+            {content}
+          </div>
+        </div>
+      );
+    }
+    
 
   } else {
     return (<></>)
